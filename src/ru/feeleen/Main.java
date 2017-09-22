@@ -1,5 +1,7 @@
 package ru.feeleen;
 
+import com.sun.org.apache.xpath.internal.SourceTree;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -8,6 +10,7 @@ import java.io.*;
 public class Main {
 
     public static void main(String[] args) throws Exception{
+        Property.setTax(.13);
         List<Property> properties = new ArrayList<>();
         properties.addAll(getPropertiesFromFile());
         Menu menu = Menu.Add;
@@ -19,6 +22,7 @@ public class Main {
                     menu = Menu.values()[choose(scn)-1];
                     switch (menu){
                         case Add: addNewProperty(scn, properties); break;
+                        case SetTax: setTax(scn); break;
                         case Print: printAll(properties); break;
                         case PrintClass: printClass(properties, scn); break;
                         case Save: save(properties); break;
@@ -32,7 +36,7 @@ public class Main {
                 } catch (Exception e) {
                     System.out.println(e);
                     e.getStackTrace();
-                    System.out.println("Application finished crush");
+                    System.err.println("Application finished crush");
                     menu=Menu.Exit;
                 }
             } while (menu!=Menu.Exit);
@@ -45,7 +49,7 @@ public class Main {
             System.out.println("them don't exist");
         } else {
             for (Property item : properties) {
-                System.out.println("name = " + item.getName() + "; price = " + item.getPrice());
+                System.out.println("name = " + item.getName() + "; price = " + item.getPrice() + "; nalog = " + item.calculateTaxe());
             }
             System.out.println();
         }
@@ -87,6 +91,7 @@ public class Main {
 
     public static void showMenu(){
         System.out.println("Enter "+ (Menu.Add.ordinal()+1) + " to Add properties");
+        System.out.println("Enter "+ (Menu.SetTax.ordinal()+1) + " to SetTax properties");
         System.out.println("Enter "+ (Menu.Print.ordinal()+1) + " to Print all properties");
         System.out.println("Enter "+ (Menu.PrintClass.ordinal()+1) + " to Print Specific properties");
         System.out.println("Enter "+ (Menu.Save.ordinal()+1) + " to Save all properties");
@@ -107,11 +112,10 @@ public class Main {
     public static void addNewProperty(Scanner scn, List<Property> properties){
         System.out.println();
         showChoiceOfProperty();
-        Properties prop = Properties.values()[choose(scn)-1];
-
         boolean checked = false;
         do {
             try {
+                Properties prop = Properties.values()[choose(scn)-1];
                 switch (prop) {
                     case Flat: {
                         properties.add(createFlat(scn));
@@ -132,6 +136,9 @@ public class Main {
 
                     default: throw new IllegalArgumentException();
                 }
+            } catch (ArrayIndexOutOfBoundsException e) {
+                System.out.println("IndexOutOfBounds i = " + (Integer.parseInt(e.getMessage())+1));
+                System.out.println("Bounds of 1... " + Properties.values().length);
             } catch (Exception e) {
                 System.out.println("Error");
                 checked=false;
@@ -205,5 +212,22 @@ public class Main {
             }
         }
         System.out.println("Save");
+    }
+
+    static void setTax(Scanner scn){
+        double tax = 0;
+        boolean checked;
+        do {
+            try {
+                System.out.println("Enter tax");
+                tax = Double.parseDouble(scn.nextLine());
+                checked = true;
+            }
+            catch (Exception e){
+                System.out.println("Error entry");
+                checked = false;
+            }
+        } while (!checked);
+        Property.setTax(tax);
     }
 }
